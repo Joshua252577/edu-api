@@ -1,3 +1,4 @@
+const res = require('express/lib/response');
 const knex = require('../databases/knex');
 const fieldValidator = require('../utils/FieldValidator');
 
@@ -55,6 +56,38 @@ exports.findById = async (req, res) => {
       ...course, 
       lessons,
     });
+  } catch (err) {
+    return res.status(500).send({ error: err.message || err})
+  }
+}
+
+exports.updade = async (req, res) => {
+  try {
+    const { id }= req.params;
+    const newCourse = req.body;
+
+
+    const course = await knex.select('*').from('courses').where({ id }).first();
+
+    if(!course) {
+      return res.status(404).send({
+        status: `Nenhum curso com o id ${id} foi encontrado`
+      });  
+    }
+
+    await knex
+    .update(newCourse)
+    .from('courses')
+    .where({ id });
+
+    const courseUpdated = await knex
+    .updade(course)
+    .from('courses')
+    .where({ id })
+    .first();
+
+    return res.status(200).send(courseUpdated);
+
   } catch (err) {
     return res.status(500).send({ error: err.message || err})
   }
