@@ -92,8 +92,20 @@ exports.findById = async (req , res ) => {
 
     const instructor = await knex.select('*').from('instructors').where({ id:lesson.instructorId}).first();
 
+    delete lesson.instructorId;
+    delete lesson.courseId;
+
+    delete instructor.id;
+    
+//define um avatar padrão se não tiver avatar
+    if(!instructor.avatarUrl) {
+      instructor.avatarUrl = 'https://avatars.dicebear.com/api/bottts/your-custom-seed.svg'
+
+    }
+
     return res.status(200).send({
-      ...lesson
+      ...lesson,
+      instructor
     });
   } catch (err) {
     return res.status(500).send({ error: err.message || err});
