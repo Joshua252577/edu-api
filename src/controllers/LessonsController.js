@@ -69,6 +69,7 @@ exports.create = async (req, res) => {
       .from('lessons')
       .where({ id: lessonCreatedId });
 
+
     return res.status(200).send({
       status: 'success',
       data: lessonCreated
@@ -78,36 +79,43 @@ exports.create = async (req, res) => {
   }
 }
 
-exports.findById = async (req , res ) => {
+exports.findById = async (req, res) => {
   try {
     const id = req.params.id;
 
-    const [lesson] = await knex.select('*').from('lessons').where({ id }).first();
+    const lesson = await knex
+      .select('*')
+      .from('lessons')
+      .where({ id })
+      .first();
 
-    if(!lesson) {
+    if (!lesson) {
       return res.status(404).send({
-        status: `Nenhuma aula com o id: ${id} foi encontrado`
+        status: `Nenhuma aula com o id: ${id} foi encontrada`
       });
     }
 
-    const instructor = await knex.select('*').from('instructors').where({ id:lesson.instructorId}).first();
+    const instructor = await knex
+      .select('*')
+      .from('instructors')
+      .where({ id: lesson.instructorId })
+      .first();
 
     delete lesson.instructorId;
     delete lesson.courseId;
 
     delete instructor.id;
-    
-//define um avatar padrão se não tiver avatar
-    if(!instructor.avatarUrl) {
-      instructor.avatarUrl = 'https://avatars.dicebear.com/api/bottts/your-custom-seed.svg'
 
+    // define um avatar padrão se não existir
+    if (!instructor.avatarUrl) {
+      instructor.avatarUrl = 'https://avatars.dicebear.com/api/big-smile/your-custom-seed.svg';
     }
 
     return res.status(200).send({
       ...lesson,
       instructor
     });
-  } catch (err) {
-    return res.status(500).send({ error: err.message || err});
+  } catch (e) {
+    return res.status(500).send({ error: e.message || e });
   }
 }
