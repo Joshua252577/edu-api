@@ -80,30 +80,52 @@ exports.update = async (req, res) => {
       .where({ id })
       .first();
 
-      
-      if (!course) {
-        return res.status(404).send({
-          status: `Nenhum curso com o id ${id} foi encontrado`
-        });
-      }
-      
-      await knex
+    if (!course) {
+      return res.status(404).send({
+        status: `Nenhum curso com o id ${id} foi encontrado`
+      });
+    }
+    
+    await knex
       .update(newCourse)
       .from('courses')
       .where({ id });
-      
-      const courseUpdated = await knex
+
+    const courseUpdated = await knex
       .select('*')
       .from('courses')
       .where({ id })
       .first();
-      
-      delete lesson.instructorId;
-      delete lesson.courseId;
-  
-      delete instructor.id;
+
     return res.status(200).send(courseUpdated);
   } catch (e) {
     return res.status(500).send({ error: e.message || e });
+  }
+}
+
+exports.delete = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const course = await knex
+      .select(['id'])
+      .where({ id })
+      .from('courses')
+      .first();
+    
+    if (!course){
+      return res
+        .status(404)
+        .send({ status: `Curso com id ${id} não encontrado` });
+    }
+    
+    await knex
+      .delete()
+      .from('courses')
+      .where({ id: course.id });
+
+    return res.status(204).send({ status: 'Registro removido com sucesso' });
+  } catch (e) {
+    return res.status(500).send({ error: e.message });
   }
 }

@@ -1,6 +1,18 @@
 const knex = require('../databases/knex');
 const fieldValidator = require('../utils/FieldValidator');
 
+exports.find = async (req, res) => {
+  try {
+    const instructors = await knex
+      .select('*')
+      .from('instructors');
+
+    return res.status(200).send(instructors);
+  } catch (e) {
+    return res.status(500).send({ error: e.message || e });
+  }
+}
+
 exports.create = async (req, res) => {
   try {
     const invalidFields = fieldValidator(req.body, ['fullName', 'avatarUrl']);
@@ -37,11 +49,6 @@ exports.update = async (req, res) => {
       .where({ id })
       .first();
 
-      delete lesson.instructorId;
-      delete lesson.courseId;
-  
-      delete instructor.id;
-      
     if (!instructor) {
       return res.status(404).send({
         status: `Nenhum professor com o id ${id} foi encontrado`
@@ -64,3 +71,50 @@ exports.update = async (req, res) => {
     return res.status(500).send({ error: e.message || e });
   }
 }
+
+exports.delete = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const instructor = await knex
+      .select(['id'])
+      .where({ id })
+      .from('instructors')
+      .first();
+    
+    if (!instructor){
+      return res
+        .status(404)
+        .send({ status: `Instrutor com id ${id} não encontrado` });
+    }
+    
+    await knex
+      .delete()
+      .from('instructors')
+      .where({ id: instructor.id });
+
+    return res.status(204).send({ status: 'Registro removido com sucesso' });
+  } catch (e) {
+    return res.status(500).send({ error: e.message });
+  }
+}
+
+exports.findById = async (req, res) => {
+  try {
+    const { id  } = req.params;
+
+    const instructor = await knex
+      .select('*')
+      .from('instructors')
+      .where({ id })
+      .first();
+    
+    if(!instructor) {
+      return res.status(404).send({ status: `Instrutor com id ${id} não encontrado` });
+    }
+
+    return res.status(200).send(instructor);
+  } catch (e) {
+    return res.status(500).send({ error: e.message });
+  }
+} 
